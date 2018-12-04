@@ -36,4 +36,8 @@ public class SystemConstant {
 
     public static final String ATTRIBUTE_IN_SESSION = "userId";
 
+    public static final String NO_PARAMETER = "-1";
+
+
+
 }

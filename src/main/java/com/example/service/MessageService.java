@@ -1,5 +1,6 @@
 package com.example.service;
 
+import com.example.entity.ChatSession;
 import com.example.entity.Message;
 
 import java.util.List;
@@ -26,13 +27,12 @@ public interface MessageService {
     List<Message> listHistoryMessage(int chatSessionId);
 
     /**
-     * 发起私人对话
-     *
-     * @param myId     本方ID
-     * @param targetId 对方ID
-     * @return 新建的会话ID
+     * 发起私聊
+     * @param chatSession 会话
+     * @param myId 用户id
+     * @param targetId 对方id
      */
-    int makePersonSession(int myId, int targetId);
+    int makePersonSession(ChatSession chatSession, int myId, int targetId);
 
     /**
      * 发起群聊

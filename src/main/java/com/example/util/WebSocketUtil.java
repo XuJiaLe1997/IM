@@ -4,13 +4,16 @@ import com.example.entity.Message;
 import com.example.entity.HttpResponse;
 import com.example.entity.WebSocketResponse;
 import com.example.service.MessageService;
-import com.example.service.UserService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.websocket.Session;
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -52,6 +55,7 @@ public class WebSocketUtil {
                 sendMessage(sender, data, session);
                 break;
             case SystemConstant.REQUEST_ADD_FRIEND:
+                sendFriendRequest(sender, data, session);
                 break;
             case SystemConstant.REQUEST_ADD_GROUP:
                 break;
@@ -61,7 +65,7 @@ public class WebSocketUtil {
     }
 
     /**
-     * 发送消息
+     * 发送聊天消息
      *
      * @param sender  发送人ID
      * @param data    信息
@@ -69,48 +73,79 @@ public class WebSocketUtil {
      */
     private static void sendMessage(int sender, JSONObject data, Session session) {
 
-        if (!(data.has("chatSessionId") && data.has("msg"))) return;
-        // 获取会话ID
+        if (!data.has("chatSessionId") || !data.has("msg")) return;
         int chatSessionId = data.getInt("chatSessionId");
-        String content = data.getString("msg");
-        // 获取会话参与者ID
-        // 数据库的IO比较耗时，可以考虑缓存机制
+        String msg = data.getString("msg");
+
+        // 获取会话参与者ID，数据库的IO比较耗时，可以考虑缓存机制
         List<Integer> chatSessionMembers = messageService.listChatSessionMembers(chatSessionId);
         chatSessionMembers.remove(sender);
 
         Message message = new Message();
+        message.setType(SystemConstant.MESSAGE_CHAT);
         message.setSender(sender);
-        message.setChatSession(chatSessionId);
-        message.setContent(content);
+        message.setChatSessionId(chatSessionId);
+        message.setMsg(msg);
 
         try {
             for (Integer item : chatSessionMembers) {
                 if (sessions.containsKey(item)) {
                     // 构建待发送的消息
-                    JSONObject toSend = new JSONObject();
+                    Map<String, Object> toSend = new HashMap<>();
                     toSend.put("sender", sender);
-                    toSend.put("msg", content);
+                    toSend.put("msg", msg);
                     toSend.put("time", message.getDate());
-                    WebSocketResponse webSocketResponse = new WebSocketResponse(SystemConstant.MESSAGE_CHAT, toSend.toString());
+                    WebSocketResponse webSocketResponse = new WebSocketResponse(
+                            SystemConstant.MESSAGE_CHAT, new JSONObject(toSend).toString());
                     // 发送
                     Session receiverSession = sessions.get(item);
                     receiverSession.getBasicRemote().sendText(new JSONObject(webSocketResponse).toString());
-                    LoggerUtil.log("消息已发送至在线用户"+item);
+                    LoggerUtil.log("消息已发送至在线用户" + item);
                 } else {
                     LoggerUtil.log("用户" + item + "不在线！");
                 }
             }
             // 保存消息
-             messageService.saveMessage(message);
+            messageService.saveMessage(message);
         } catch (IOException e) {
-            sendResponseMessage(SystemConstant.FAIL, "服务器错误，消息发送失败", "", session);
+            sendResponseMessage(SystemConstant.FAIL, "服务器错误，消息发送失败", null, session);
             e.printStackTrace();
             LoggerUtil.log(e.getMessage());
         }
     }
 
     /**
-     * WebSocket返回数据
+     * 发送好友申请，暂时还没有做申请的保存
+     *
+     * @param sender  发送者
+     * @param data    数据
+     * @param session 发送者连接
+     */
+    private static void sendFriendRequest(int sender, JSONObject data, Session session) {
+        if (!data.has("receiver") || !data.has("msg")) return;
+        int receiver = data.getInt("receiver");
+        String msg = data.getString("msg");
+        Map<String, Object> param = new HashMap<>();
+        param.put("sender", sender);
+        param.put("mag", msg);
+        param.put("time", DateUtil.string(new Timestamp((new Date()).getTime())));
+        WebSocketResponse webSocketResponse = new WebSocketResponse(
+                SystemConstant.REQUEST_ADD_FRIEND, new JSONObject(param).toString());
+        if (sessions.containsKey(receiver)) {
+            Session receiverSession = sessions.get(receiver);
+            try {
+                receiverSession.getBasicRemote().sendText(new JSONObject(webSocketResponse).toString());
+            } catch (Exception e) {
+                LoggerUtil.log(e.getMessage());
+                sendResponseMessage(SystemConstant.FAIL, "服务器错误，申请发送失败", null, session);
+            }
+        } else {
+            LoggerUtil.log("用户" + receiver + "不在线！");
+        }
+    }
+
+    /**
+     * WebSocket返回系统数据，一般处理错误信息
      *
      * @param code    状态码
      * @param msg     描述信息

@@ -1,5 +1,6 @@
 package com.example.entity;
 
+import com.example.util.DateUtil;
 import com.example.util.SystemConstant;
 
 import java.util.Date;
@@ -10,26 +11,36 @@ import java.sql.Timestamp;
  */
 public class Message {
 
+    private String type; //消息类型
+
     private int messageId;
 
     private int sender;
 
-    private int chatSession;
+    private int chatSessionId;
 
-    private String content;
+    private String msg;
 
-    private Timestamp date;
+    private String date;
 
     private int status;  // 标记是否已读
 
     public Message() {
+        this.type = null;
         this.sender = 0;
-        this.chatSession = 0;
-        this.content = null;
-        this.date = new Timestamp((new Date()).getTime());  //时间初始化为当前
+        this.chatSessionId = 0;
+        this.msg = null;
+        this.date = DateUtil.string(new Timestamp((new Date()).getTime()));  //时间初始化为当前
         this.status = SystemConstant.MESSAGE_NOT_READ;  //默认为未读消息
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     public int getMessageId() {
         return messageId;
@@ -47,27 +58,27 @@ public class Message {
         this.sender = sender;
     }
 
-    public int getChatSession() {
-        return chatSession;
+    public int getChatSessionId() {
+        return chatSessionId;
     }
 
-    public void setChatSession(int chatSession) {
-        this.chatSession = chatSession;
+    public void setChatSessionId(int chatSessionId) {
+        this.chatSessionId = chatSessionId;
     }
 
-    public String getContent() {
-        return content;
+    public String getMsg() {
+        return msg;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    public void setMsg(String msg) {
+        this.msg = msg;
     }
 
-    public Timestamp getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(Timestamp date) {
+    public void setDate(String date) {
         this.date = date;
     }
 
@@ -79,11 +90,4 @@ public class Message {
         this.status = status;
     }
 
-    @Override
-    public String toString() {
-        return "\nSender:" + sender
-                + "\nTime" + date
-                + "\nContent:" + content
-                + "\nStatus:" + status;
-    }
 }

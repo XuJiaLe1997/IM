@@ -32,6 +32,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public int register(User user) {
+        if (userMapper.selectUserByAccount(user.getAccount()) != null)
+            return SystemConstant.ACCOUNT_EXIST;
+
         return userMapper.insertUser(user);
     }
 
@@ -50,6 +53,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getUserById(int userId) {
+        return userMapper.selectUserById(userId);
+    }
+
+    @Override
     public User getUserByAccount(String account) {
         return userMapper.selectUserByAccount(account);
     }
@@ -58,7 +66,7 @@ public class UserServiceImpl implements UserService {
     public int uploadImage(MultipartFile file, int userId, String imagePath) {
         try {
             if (file == null)
-                return 0;
+                return SystemConstant.FAIL;
             String imageName = userId + ".jpg";
             File filePath = new File(imagePath, imageName);
             // 创建目录
@@ -71,10 +79,38 @@ public class UserServiceImpl implements UserService {
             }
             // 转存文件到指定路径
             file.transferTo(new File(imagePath + File.separator + imageName));
-            return 1;
+            return SystemConstant.SUCCEED;
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return 0;
+        return SystemConstant.FAIL;
+    }
+
+    @Override
+    public int modifyUser(User user) {
+        StringBuilder sb = new StringBuilder();
+        if (user.getName() != null)
+            sb.append("name='").append(user.getName()).append("',");
+        if (user.getAge() != Integer.valueOf(SystemConstant.NO_PARAMETER)) {
+            sb.append("age=").append(user.getAge()).append(",");
+        }
+        if (user.getSex() != Integer.valueOf(SystemConstant.NO_PARAMETER)) {
+            sb.append("sex=").append(user.getAge()).append(",");
+        }
+        if (user.getArea() != null) {
+            sb.append("area='").append(user.getArea()).append("',");
+        }
+        sb.deleteCharAt(sb.length()-1);
+        int result =  userMapper.updateUser(sb.toString(),user.getUserId());
+        if(result == 1){
+            return SystemConstant.SUCCEED;
+        }else{
+            return SystemConstant.FAIL;
+        }
+    }
+
+    @Override
+    public List<User> getFriendList(int userId) {
+        return userMapper.selectFriendList(userId);
     }
 }
