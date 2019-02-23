@@ -47,7 +47,7 @@ public interface UserService {
      * 修改用户信息
      * @param user 用户信息
      */
-    int modifyUser(User user);
+    int modifyUserInfo(User user);
 
     /**
      * 获取用户的好友列表

@@ -1,7 +1,7 @@
 package com.example.service.impl;
 
 import com.example.entity.User;
-import com.example.dao.UserMapper;
+import com.example.dao.UserDao;
 import com.example.service.UserService;
 import com.example.util.LoggerUtil;
 import com.example.util.SystemConstant;
@@ -23,25 +23,26 @@ import java.util.List;
 @Transactional
 public class UserServiceImpl implements UserService {
 
-    private UserMapper userMapper;
+    private UserDao userDao;
 
     @Autowired
-    public void setUserMapper(UserMapper userMapper) {
-        this.userMapper = userMapper;
+    public void setUserDao(UserDao userDao) {
+        this.userDao = userDao;
     }
 
     @Override
     public int register(User user) {
-        if (userMapper.selectUserByAccount(user.getAccount()) != null)
+        if (userDao.selectUserByAccount(user.getAccount()) != null)
             return SystemConstant.ACCOUNT_EXIST;
 
-        return userMapper.insertUser(user);
+        return userDao.insertUser(user);
     }
 
     @Override
     public int login(String account, String password) {
-        User user = userMapper.selectUserByAccount(account);
-        if (user.getAccount() == null) {
+        // 获取数据库信息
+        User user = userDao.selectUserByAccount(account);
+        if (user == null) {
             LoggerUtil.log("账号" + account + "不存在");
             return SystemConstant.ACCOUNT_NOT_EXIST;
         }
@@ -54,12 +55,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserById(int userId) {
-        return userMapper.selectUserById(userId);
+        return userDao.selectUserById(userId);
     }
 
     @Override
     public User getUserByAccount(String account) {
-        return userMapper.selectUserByAccount(account);
+        return userDao.selectUserByAccount(account);
     }
 
     @Override
@@ -87,7 +88,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int modifyUser(User user) {
+    public int modifyUserInfo(User user) {
+        // 拼装sql语句
         StringBuilder sb = new StringBuilder();
         if (user.getName() != null)
             sb.append("name='").append(user.getName()).append("',");
@@ -101,7 +103,7 @@ public class UserServiceImpl implements UserService {
             sb.append("area='").append(user.getArea()).append("',");
         }
         sb.deleteCharAt(sb.length()-1);
-        int result =  userMapper.updateUser(sb.toString(),user.getUserId());
+        int result =  userDao.updateUser(sb.toString(),user.getUserId());
         if(result == 1){
             return SystemConstant.SUCCEED;
         }else{
@@ -111,6 +113,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getFriendList(int userId) {
-        return userMapper.selectFriendList(userId);
+        return userDao.selectFriendList(userId);
     }
 }

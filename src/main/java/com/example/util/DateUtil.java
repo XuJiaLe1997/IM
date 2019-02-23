@@ -7,6 +7,10 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * Description: 日期工具
+ */
+
 public class DateUtil {
     private static DateFormat format = new SimpleDateFormat("yyyy-MM-dd kk:mm:ss", Locale.ENGLISH);
 

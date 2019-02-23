@@ -7,7 +7,14 @@ package com.example.entity;
 public class ChatSession {
 
     private int chatSessionId;
+    private int userId;
     private String chatName;
+
+    public ChatSession(){
+        this.setChatSessionId(0);
+        this.setUserId(0);
+        this.setChatName(null);
+    }
 
     public ChatSession(String chatName){
         this.chatName = chatName;
@@ -27,5 +34,13 @@ public class ChatSession {
 
     public void setChatName(String chatName) {
         this.chatName = chatName;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 }

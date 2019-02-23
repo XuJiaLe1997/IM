@@ -11,4 +11,11 @@ public class WebSocketConfig {
     public ServerEndpointExporter serverEndpointExporter() {
         return new ServerEndpointExporter();
     }
+
+    @Bean
+    public SpringContextHelper newConfigure()
+    {
+        return new SpringContextHelper();
+    }
+
 }

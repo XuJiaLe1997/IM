@@ -5,8 +5,8 @@
 
     <groupId>com.example</groupId>
     <artifactId>im</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <packaging>jar</packaging>
+    <version>0.0.1</version>
+    <packaging>war</packaging>
 
     <name>im</name>
     <description>IM</description>
@@ -43,6 +43,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -104,6 +105,12 @@
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20180813</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.1</version>
         </dependency>
 
     </dependencies>

@@ -1,63 +1,101 @@
 package com.example.service.impl;
 
-import com.example.dao.MessageMapper;
+import com.example.dao.MessageDao;
+import com.example.dao.UserDao;
 import com.example.entity.ChatSession;
+import com.example.entity.FriendApply;
 import com.example.entity.Message;
 import com.example.service.MessageService;
 import com.example.util.SystemConstant;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import sun.jvm.hotspot.ui.action.MemoryAction;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.PrimitiveIterator;
 
-@Service
+@Service("messageService")
 @Transactional
 public class MessageServiceImpl implements MessageService {
 
-    private MessageMapper messageMapper;
+    private MessageDao messageDao;
+    private UserDao userDao;
 
     @Autowired
-    public void setMessageMapper(MessageMapper messageMapper) {
-        this.messageMapper = messageMapper;
+    public void setMessageDao(MessageDao messageDao) {
+        this.messageDao = messageDao;
+    }
+
+    @Autowired
+    public void setUserDao(UserDao userDao){
+        this.userDao = userDao;
     }
 
     @Override
     public int saveMessage(Message message) {
-        return messageMapper.insertMessage(message);
+        return messageDao.insertMessage(message);
+    }
+
+    @Override
+    public int saveRequest(FriendApply friendApply) {
+        return messageDao.insertRequest(friendApply);
+    }
+
+    @Override
+    public List<FriendApply> selectApplyById(int handleId) {
+        return messageDao.selectFriendApplyByUserId(handleId);
+    }
+
+    @Override
+    public int handleApply(int applyId, String handle, int userId) {
+        int result;
+        FriendApply apply = messageDao.selectApplyById(applyId);
+        // 同意，新增好友关系
+        if("agree".equals(handle)){
+            int friendId = apply.getSenderId();
+            result = userDao.insertFriend(userId,friendId);
+            if(result != 1) return SystemConstant.FAIL;
+            result = userDao.insertFriend(friendId,userId);
+            if(result != 1) return SystemConstant.FAIL;
+        }
+        // 更新好友申请的处理状态，标记为已处理
+        result = messageDao.updateApplyHandle(applyId);
+        if(result == 1){
+            return SystemConstant.SUCCEED;
+        }else {
+            return SystemConstant.FAIL;
+        }
     }
 
     @Override
     public List<Message> listOfflineMessage(int chatSessionId) {
-        return messageMapper.selectOfflineMessageByChatSessionId(chatSessionId);
+        return messageDao.selectOfflineMessageByChatSessionId(chatSessionId);
     }
 
     @Override
     public List<Message> listHistoryMessage(int chatSessionId) {
-        return messageMapper.selectHistoryMessageByChatSessionId(chatSessionId);
+        return messageDao.selectHistoryMessageByChatSessionId(chatSessionId);
     }
 
     @Override
-    public int makePersonSession(ChatSession chatSession, int myId, int targetId) {
+    public int makePrivateSession(ChatSession chatSession, int myId, int targetId) {
         // 检查是否已经存在会话
-        Integer existChatSessionId = messageMapper.selectChatSessionByUserId(myId, targetId);
+        Integer existChatSessionId = messageDao.selectChatSessionByUserId(myId, targetId);
         if (existChatSessionId != null) {
             chatSession.setChatSessionId(existChatSessionId);
             return SystemConstant.SUCCEED;
         }
         // 会话不存在，创建新会话
-        int result = messageMapper.insertChatSession(chatSession);
+        int result = messageDao.insertChatSession(chatSession);
         if (result == 0) {
             return SystemConstant.FAIL;
         }
-        result = messageMapper.insertChatSessionMember(chatSession.getChatSessionId(), myId);
+        // 插入会话成员
+        result = messageDao.insertChatSessionMember(chatSession.getChatSessionId(), myId);
         if (result == 0) {
             return SystemConstant.FAIL;
         }
-        result = messageMapper.insertChatSessionMember(chatSession.getChatSessionId(), targetId);
+        result = messageDao.insertChatSessionMember(chatSession.getChatSessionId(), targetId);
         if (result == 0) {
             return SystemConstant.FAIL;
         }
@@ -70,7 +108,20 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public List<Integer> listChatSessionMembers(int chatSessionId) {
-        return messageMapper.selectChatSessionMember(chatSessionId);
+    public List<Integer> listMembers(int chatSessionId) {
+        return messageDao.selectChatSessionMember(chatSessionId);
+    }
+
+    @Override
+    public List<ChatSession> listAllChatSession(int userId) {
+        // 获取用户参与的所有会话
+        List<ChatSession> chatSessions = messageDao.selectAllChatSession(userId);
+        List<ChatSession> temp = new ArrayList<>();
+        // 只保留会话ID和其他成员的ID
+        for(ChatSession chatSession: chatSessions){
+            if(chatSession.getUserId() != userId)
+                temp.add(chatSession);
+        }
+        return temp;
     }
 }

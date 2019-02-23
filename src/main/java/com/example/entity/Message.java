@@ -1,6 +1,5 @@
 package com.example.entity;
 
-import com.example.util.DateUtil;
 import com.example.util.SystemConstant;
 
 import java.util.Date;
@@ -19,9 +18,9 @@ public class Message {
 
     private int chatSessionId;
 
-    private String msg;
+    private String content;
 
-    private String date;
+    private Timestamp date;
 
     private int status;  // 标记是否已读
 
@@ -29,8 +28,8 @@ public class Message {
         this.type = null;
         this.sender = 0;
         this.chatSessionId = 0;
-        this.msg = null;
-        this.date = DateUtil.string(new Timestamp((new Date()).getTime()));  //时间初始化为当前
+        this.content = null;
+        this.date =new Timestamp((new Date()).getTime());  //时间初始化为当前
         this.status = SystemConstant.MESSAGE_NOT_READ;  //默认为未读消息
     }
 
@@ -66,19 +65,19 @@ public class Message {
         this.chatSessionId = chatSessionId;
     }
 
-    public String getMsg() {
-        return msg;
+    public String getContent() {
+        return content;
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
+    public void setContent(String content) {
+        this.content = content;
     }
 
-    public String getDate() {
+    public Timestamp getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(Timestamp date) {
         this.date = date;
     }
 

@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.entity.ChatSession;
+import com.example.entity.FriendApply;
 import com.example.entity.Message;
 
 import java.util.List;
@@ -19,11 +20,33 @@ public interface MessageService {
      */
     int saveMessage(Message message);
 
+
+    /**
+     * 保存好友申请
+     * @param friendApply 申请体
+     */
+    int saveRequest(FriendApply friendApply);
+
+    /**
+     * 获取用户所有未处理申请
+     * @param handleId 用户ID
+     */
+    List<FriendApply> selectApplyById(int handleId);
+
+    /**
+     * 处理申请
+     */
+    int handleApply(int applyId, String handle, int userId);
+
     /**
      * 获取离线消息
      */
     List<Message> listOfflineMessage(int chatSessionId);
 
+    /**
+     * 获取历史消息
+     * @param chatSessionId 会话ID
+     */
     List<Message> listHistoryMessage(int chatSessionId);
 
     /**
@@ -32,7 +55,7 @@ public interface MessageService {
      * @param myId 用户id
      * @param targetId 对方id
      */
-    int makePersonSession(ChatSession chatSession, int myId, int targetId);
+    int makePrivateSession(ChatSession chatSession, int myId, int targetId);
 
     /**
      * 发起群聊
@@ -48,5 +71,11 @@ public interface MessageService {
      * @param chatSessionId 会话ID
      * @return 所有成员的ID列表
      */
-    List<Integer> listChatSessionMembers(int chatSessionId);
+    List<Integer> listMembers(int chatSessionId);
+
+    /**
+     * 获取用户所有的chatSession
+     * @param userId 用户ID
+     */
+    List<ChatSession> listAllChatSession(int userId);
 }

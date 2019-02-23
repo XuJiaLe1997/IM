@@ -14,9 +14,9 @@ public class SystemConstant {
 
     public static final int LOGGER_OFF = 0;  // 关闭日志系统
 
-    public static final String REQUEST_ADD_GROUP = "addGroup";  // 添加群组申请
+    public static final String Apply_ADD_GROUP = "addGroup";  // 添加群组申请
 
-    public static final String REQUEST_ADD_FRIEND = "addFriend";  // 添加好友申请
+    public static final String Apply_ADD_FRIEND = "addFriend";  // 添加好友申请
 
     public static final String MESSAGE_FROM_SYSTEM = "system";  // 系统消息
 

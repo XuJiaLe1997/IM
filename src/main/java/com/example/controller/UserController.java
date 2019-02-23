@@ -3,10 +3,8 @@ package com.example.controller;
 import com.example.entity.HttpResponse;
 import com.example.entity.User;
 import com.example.service.UserService;
-import com.example.util.LoggerUtil;
 import com.example.util.SystemConstant;
 import org.json.JSONObject;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,6 +38,7 @@ public class UserController {
     public HttpResponse login(@RequestParam("account") String account,
                               @RequestParam("password") String password,
                               HttpSession session) {
+        // 验证
         int userId = userService.login(account, password);
         HttpResponse response;
         if (userId == SystemConstant.ACCOUNT_NOT_EXIST) {
@@ -49,7 +48,7 @@ public class UserController {
         } else {
             response = new HttpResponse(SystemConstant.SUCCEED, "登录成功", null);
         }
-        // 将userId保存到session
+        // 登录成功后将userId保存到session
         session.setAttribute("userId", userId);
         return response;
     }
@@ -65,6 +64,7 @@ public class UserController {
         user.setAccount(account);
         user.setPassword(password);
         user.setName(name);
+        // 注册
         int result = userService.register(user);
         if (result == SystemConstant.SUCCEED) {
             // 注册成功，返回用户ID
@@ -110,7 +110,8 @@ public class UserController {
         user.setSex(sex);
         user.setAge(age);
         user.setArea(area);
-        int result = userService.modifyUser(user);
+
+        int result = userService.modifyUserInfo(user);
         if (result == SystemConstant.SUCCEED)
             return new HttpResponse(SystemConstant.SUCCEED, null, null);
         return new HttpResponse(SystemConstant.FAIL, null, null);
@@ -123,17 +124,19 @@ public class UserController {
     public HttpResponse getFriendList(HttpServletRequest request) {
         HttpSession session = request.getSession();
         int userId = (int) session.getAttribute("userId");
+
         List<User> friends = userService.getFriendList(userId);
+
         Map<String, Object> param = new HashMap<>();
         param.put("list", friends);
-        return new HttpResponse(SystemConstant.FAIL, "此功能尚未开放", param);
+        return new HttpResponse(SystemConstant.SUCCEED, null, param);
     }
 
     /**
      * 查看其他用户信息
      */
     @GetMapping("/otherUserInfo")
-    public HttpResponse getFriendInfo(@RequestParam("userId") int userId) {
+    public HttpResponse getOtherUserInfo(@RequestParam("userId") int userId) {
         User user = userService.getUserById(userId);
         if (user == null) {
             return new HttpResponse(SystemConstant.FAIL, "用户不存在", null);
@@ -161,6 +164,21 @@ public class UserController {
         } else {
             return new HttpResponse(SystemConstant.FAIL, null, null);
         }
+    }
+
+
+    /**
+     * 根据账号查找指定用户
+     * @param account 账号
+     */
+    @GetMapping("/search")
+    public HttpResponse searchUser(@RequestParam("account")String account){
+        User user = userService.getUserByAccount(account);
+        if(user == null){
+            return new HttpResponse(SystemConstant.FAIL,"用户不存在",null);
+        }
+        user.setPassword(null);
+        return new HttpResponse(SystemConstant.SUCCEED,null,user);
     }
 
 }
